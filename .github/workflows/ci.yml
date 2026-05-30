@@ -15,8 +15,29 @@ jobs:
 
       - name: Validate repo structure
         run: |
-         echo "Running CI checks..."
+          echo "Checking notebook files..."
 
-         python -m py_compile $(find . -name "*.py") || true
+          find . -name "*.ipynb"
 
-         echo "CI completed"
+          echo "Validating notebook structure..."
+
+          python - << 'EOF'
+          import json
+          import glob
+
+          notebooks = glob.glob("**/*.ipynb", recursive=True)
+
+          if not notebooks:
+              print("No notebooks found")
+          else:
+              for nb in notebooks:
+                  try:
+                      with open(nb, "r", encoding="utf-8") as f:
+                          json.load(f)
+                      print(f"{nb} → valid notebook")
+                  except Exception as e:
+                      print(f"{nb} → INVALID: {e}")
+                      exit(1)
+
+          print("All notebooks validated successfully")
+          EOF
