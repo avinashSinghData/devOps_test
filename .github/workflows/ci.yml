@@ -6,20 +6,32 @@ on:
       - first_branch
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Validate repo structure
+      - name: Validate structure
         run: |
-          echo "Validating lakehouse structure..."
-
+          echo "Checking lakehouse structure..."
           if [ ! -d "notebooks/bronze" ]; then exit 1; fi
           if [ ! -d "notebooks/silver" ]; then exit 1; fi
           if [ ! -d "notebooks/gold" ]; then exit 1; fi
+          echo "Structure OK"
 
-          echo "Lakehouse structure OK"
+  test:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find notebooks
+        run: find . -name "*.ipynb"
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulate deploy
+        run: echo "Deploying to Databricks (simulation)"
           
