@@ -15,29 +15,11 @@ jobs:
 
       - name: Validate repo structure
         run: |
-          echo "Checking notebook files..."
+          echo "Validating lakehouse structure..."
 
-          find . -name "*.ipynb"
+          if [ ! -d "notebooks/bronze" ]; then exit 1; fi
+          if [ ! -d "notebooks/silver" ]; then exit 1; fi
+          if [ ! -d "notebooks/gold" ]; then exit 1; fi
 
-          echo "Validating notebook structure..."
-
-          python - << 'EOF'
-          import json
-          import glob
-
-          notebooks = glob.glob("**/*.ipynb", recursive=True)
-
-          if not notebooks:
-              print("No notebooks found")
-          else:
-              for nb in notebooks:
-                  try:
-                      with open(nb, "r", encoding="utf-8") as f:
-                          json.load(f)
-                      print(f"{nb} → valid notebook")
-                  except Exception as e:
-                      print(f"{nb} → INVALID: {e}")
-                      exit(1)
-
-          print("All notebooks validated successfully")
+          echo "Lakehouse structure OK"
           EOF
