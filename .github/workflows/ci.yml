@@ -32,6 +32,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Simulate deploy
         run: echo "Deploying to Databricks (simulation)"
-          
