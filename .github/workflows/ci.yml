@@ -22,4 +22,4 @@ jobs:
           if [ ! -d "notebooks/gold" ]; then exit 1; fi
 
           echo "Lakehouse structure OK"
-          EOF
+          
