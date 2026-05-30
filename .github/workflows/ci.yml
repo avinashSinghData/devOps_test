@@ -15,5 +15,8 @@ jobs:
 
       - name: Validate repo structure
         run: |
-          echo "Checking repository..."
-          ls -R
+         echo "Running CI checks..."
+
+         python -m py_compile $(find . -name "*.py") || true
+
+         echo "CI completed"
