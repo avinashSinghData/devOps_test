@@ -14,9 +14,9 @@ jobs:
       - name: Validate structure
         run: |
           echo "Checking lakehouse structure..."
-          if [ ! -d "notebooks/bronze" ]; then exit 1; fi
-          if [ ! -d "notebooks/silver" ]; then exit 1; fi
-          if [ ! -d "notebooks/gold" ]; then exit 1; fi
+          if [ ! -d "bronze" ]; then exit 1; fi
+          if [ ! -d "silver" ]; then exit 1; fi
+          if [ ! -d "gold" ]; then exit 1; fi
           echo "Structure OK"
 
   test:
