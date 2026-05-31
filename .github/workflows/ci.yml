@@ -11,13 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate structure
+      - name: Validate notebooks exist
         run: |
-          echo "Checking lakehouse structure..."
-          if [ ! -d "bronze" ]; then exit 1; fi
-          if [ ! -d "silver" ]; then exit 1; fi
-          if [ ! -d "gold" ]; then exit 1; fi
-          echo "Structure OK"
+          test -f bronze/ingest.ipynb
+          test -f silver/transform.ipynb
+          test -f gold/reporting.ipynb
+
+          echo "All notebooks found"
 
   test:
     needs: validate
