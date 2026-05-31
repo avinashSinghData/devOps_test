@@ -35,4 +35,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Simulate deploy
-        run: echo "Deploying to Databricks (simulation)"
+        run: echo "Starting deployment..."
+             echo "Deploying notebooks..."
+             echo "Deployment complete"
