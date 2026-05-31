@@ -15,7 +15,7 @@ jobs:
         run: |
           test -f bronze/ingest.ipynb
           test -f silver/transform.ipynb
-          test -f gold/Reporting.ipynb
+          test -f gold/reporting.ipynb
 
           echo "All notebooks found"
 
