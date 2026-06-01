@@ -16,8 +16,18 @@ jobs:
           test -f bronze/ingest.ipynb
           test -f silver/transform.ipynb
           test -f gold/reporting.ipynb
-
           echo "All notebooks found"
+
+      - name: Trigger Databricks Workflow
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_JOB_ID: ${{ secrets.DATABRICKS_JOB_ID }}
+        run: |
+          curl -X POST "$DATABRICKS_HOST/api/2.1/jobs/run-now" \
+            -H "Authorization: Bearer $DATABRICKS_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"job_id\": $DATABRICKS_JOB_ID}"
 
   test:
     needs: validate
@@ -35,6 +45,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Simulate deploy
-        run: echo "Starting deployment..."
-             echo "Deploying notebooks..."
-             echo "Deployment complete"
+        run: |
+          echo "Starting deployment..."
+          echo "Deploying notebooks..."
+          echo "Deployment complete"
