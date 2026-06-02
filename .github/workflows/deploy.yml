@@ -6,25 +6,27 @@ on:
       - first_branch
 
 jobs:
-  deploy:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Databricks CLI
+      - name: Validate notebooks exist
         run: |
-          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
-
-      - name: Deploy Bundle
+          test -f bronze/ingest.ipynb
+          test -f silver/transform.ipynb
+          test -f gold/reporting.ipynb
+  trigger_job:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Databricks Job
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_JOB_ID: ${{ secrets.DATABRICKS_JOB_ID }}
         run: |
-          databricks bundle deploy -t dev
-
-      - name: Run Job
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-        run: |
-          databricks bundle run -t dev loan_pipeline
+          curl -X POST "$DATABRICKS_HOST/api/2.1/jobs/run-now" \
+            -H "Authorization: Bearer $DATABRICKS_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"job_id\": $DATABRICKS_JOB_ID}"
