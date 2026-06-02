@@ -16,26 +16,9 @@ jobs:
           test -f bronze/ingest.ipynb
           test -f silver/transform.ipynb
           test -f gold/reporting.ipynb
-          echo "Validation passed"
-
-  deploy:
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Sync Repo to Databricks
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-        run: |
-          curl -X PATCH "$DATABRICKS_HOST/api/2.0/repos/<REPO_ID>" \
-            -H "Authorization: Bearer $DATABRICKS_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{"branch": "first_branch"}'
 
   trigger_job:
-    needs: deploy
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Databricks Job
