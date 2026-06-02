@@ -16,6 +16,12 @@ jobs:
           test -f bronze/ingest.ipynb
           test -f silver/transform.ipynb
           test -f gold/reporting.ipynb
+          
+      - name: List Databricks Repos
+        run: |
+          curl -X GET "${{ secrets.DATABRICKS_HOST }}/api/2.0/repos" \
+            -H "Authorization: Bearer ${{ secrets.DATABRICKS_TOKEN }}"
+          
   trigger_job:
     needs: validate
     runs-on: ubuntu-latest
