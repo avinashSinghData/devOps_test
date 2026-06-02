@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI-CD Pipeline
 
 on:
   push:
@@ -16,8 +16,29 @@ jobs:
           test -f bronze/ingest.ipynb
           test -f silver/transform.ipynb
           test -f gold/reporting.ipynb
-          echo "All notebooks found"
-      - name: Trigger Databricks Workflow
+          echo "Validation passed"
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync Repo to Databricks
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          curl -X PATCH "$DATABRICKS_HOST/api/2.0/repos/<REPO_ID>" \
+            -H "Authorization: Bearer $DATABRICKS_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"branch": "first_branch"}'
+
+  trigger_job:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Databricks Job
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
@@ -27,23 +48,3 @@ jobs:
             -H "Authorization: Bearer $DATABRICKS_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{\"job_id\": $DATABRICKS_JOB_ID}"
-  test:
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Find notebooks
-        run: find . -name "*.ipynb"
-
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Simulate deploy
-        run: |
-          echo "Starting deployment..."
-          echo "Deploying notebooks..."
-          echo "Deployment complete"
