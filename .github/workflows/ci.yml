@@ -3,7 +3,7 @@ name: CI-CD Pipeline
 on:
   push:
     branches:
-      - first_branch
+      - develop
 
 jobs:
   validate:
@@ -13,26 +13,66 @@ jobs:
 
       - name: Validate notebooks exist
         run: |
-          test -f bronze/ingest.ipynb
-          test -f silver/transform.ipynb
-          test -f gold/reporting.ipynb
-          
-      - name: List Databricks Repos
-        run: |
-          curl -X GET "${{ secrets.DATABRICKS_HOST }}/api/2.0/repos" \
-            -H "Authorization: Bearer ${{ secrets.DATABRICKS_TOKEN }}"
-          
-  trigger_job:
+          test -f 01_bronze/ingest.ipynb
+          test -f 02_silver/transform.ipynb
+          test -f 03_gold/reporting.ipynb
+
+  deploy:
     needs: validate
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Databricks Job
+      - uses: actions/checkout@v4
+      
+      - name: Setup Databricks CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+      
+      - name: Configure Databricks CLI
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_JOB_ID: ${{ secrets.DATABRICKS_JOB_ID }}
         run: |
-          curl -X POST "$DATABRICKS_HOST/api/2.1/jobs/run-now" \
+          echo "[DEFAULT]" > ~/.databrickscfg
+          echo "host = $DATABRICKS_HOST" >> ~/.databrickscfg
+          echo "token = $DATABRICKS_TOKEN" >> ~/.databrickscfg
+      
+      - name: Update Databricks Repo
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          REPO_ID: ${{ secrets.REPO_ID }}
+        run: |
+          curl -X PATCH "$DATABRICKS_HOST/api/2.0/repos/$REPO_ID" \
             -H "Authorization: Bearer $DATABRICKS_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"job_id\": $DATABRICKS_JOB_ID}"
+            -d '{"branch": "main"}'
+            
+      - name: Deploy to test folder in UAT branch
+        run: |
+          export PATH="$HOME/.databricks/bin:$PATH"
+          databricks workspace import-dir ./bronze /Repos/deployment/cd/test/bronze --overwrite
+          databricks workspace import-dir ./silver /Repos/deployment/cd/test/silver --overwrite
+          databricks workspace import-dir ./gold /Repos/deployment/cd/test/gold --overwrite
+      
+  trigger_job:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Databricks CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+      
+      - name: Configure Databricks CLI
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          echo "[DEFAULT]" > ~/.databrickscfg
+          echo "host = $DATABRICKS_HOST" >> ~/.databrickscfg
+          echo "token = $DATABRICKS_TOKEN" >> ~/.databrickscfg
+      
+      - name: Trigger Databricks Job
+        env:
+          DATABRICKS_JOB_ID: ${{ secrets.DATABRICKS_JOB_ID }}
+        run: |
+          databricks jobs run-now $DATABRICKS_JOB_ID
