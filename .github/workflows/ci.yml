@@ -50,9 +50,9 @@ jobs:
       - name: Deploy to test folder in UAT branch
         run: |
           export PATH="$HOME/.databricks/bin:$PATH"
-          databricks workspace import-dir ./bronze /Repos/deployment/cd/test/bronze --overwrite
-          databricks workspace import-dir ./silver /Repos/deployment/cd/test/silver --overwrite
-          databricks workspace import-dir ./gold /Repos/deployment/cd/test/gold --overwrite
+          databricks workspace import-dir ./bronze /Repos/notebooks/notebook/bronze --overwrite
+          databricks workspace import-dir ./silver /Repos/notebooks/notebook/silver --overwrite
+          databricks workspace import-dir ./gold /Repos/notebooks/notebook/gold --overwrite
       
   trigger_job:
     needs: deploy
