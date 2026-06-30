@@ -47,32 +47,10 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"branch": "main"}'
             
-      - name: Deploy to test folder in UAT branch
+      - name: Deploy to main branch
         run: |
           export PATH="$HOME/.databricks/bin:$PATH"
           databricks workspace import-dir ./bronze /Repos/notebooks/notebook/01_bronze/ingest --overwrite
           databricks workspace import-dir ./silver /Repos/notebooks/notebook/02_silver/transform --overwrite
           databricks workspace import-dir ./gold /Repos/notebooks/notebook/03_gold/reporting --overwrite
-      
-  trigger_job:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup Databricks CLI
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
-      
-      - name: Configure Databricks CLI
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-        run: |
-          echo "[DEFAULT]" > ~/.databrickscfg
-          echo "host = $DATABRICKS_HOST" >> ~/.databrickscfg
-          echo "token = $DATABRICKS_TOKEN" >> ~/.databrickscfg
-      
-      - name: Trigger Databricks Job
-        env:
-          DATABRICKS_JOB_ID: ${{ secrets.DATABRICKS_JOB_ID }}
-        run: |
-          databricks jobs run-now $DATABRICKS_JOB_ID
+
