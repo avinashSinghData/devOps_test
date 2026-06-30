@@ -50,7 +50,7 @@ jobs:
       - name: Deploy to main branch
         run: |
           export PATH="$HOME/.databricks/bin:$PATH"
-          databricks workspace import-dir ./bronze /Repos/notebooks/notebook/01_bronze/ingest --overwrite
-          databricks workspace import-dir ./silver /Repos/notebooks/notebook/02_silver/transform --overwrite
-          databricks workspace import-dir ./gold /Repos/notebooks/notebook/03_gold/reporting --overwrite
+          databricks workspace import-dir /Repos/notebooks/notebook/01_bronze/ingest --overwrite
+          databricks workspace import-dir /Repos/notebooks/notebook/02_silver/transform --overwrite
+          databricks workspace import-dir /Repos/notebooks/notebook/03_gold/reporting --overwrite
 
