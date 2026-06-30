@@ -1,15 +1,17 @@
-name: CI-CD Pipeline
+name: Deploy Develop to Main
 
 on:
   push:
     branches:
-      - develop
+      - develop  # Triggers when you push to develop branch
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: develop  # Explicitly checkout develop branch
 
       - name: Validate notebooks exist
         run: |
@@ -22,6 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: develop  # Checkout develop branch files
       
       - name: Setup Databricks CLI
         run: |
@@ -36,21 +40,40 @@ jobs:
           echo "host = $DATABRICKS_HOST" >> ~/.databrickscfg
           echo "token = $DATABRICKS_TOKEN" >> ~/.databrickscfg
       
-      - name: Update Databricks Repo
+      - name: Switch Databricks Repo to main branch
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           REPO_ID: ${{ secrets.REPO_ID }}
         run: |
+          echo "🔄 Switching Databricks repo to main branch..."
           curl -X PATCH "$DATABRICKS_HOST/api/2.0/repos/$REPO_ID" \
             -H "Authorization: Bearer $DATABRICKS_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{"branch": "main"}'
+          echo "✅ Switched to main branch"
             
-      - name: Deploy to main branch
+      - name: Deploy selected files to main branch
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
           export PATH="$HOME/.databricks/bin:$PATH"
-          databricks workspace import-dir /Repos/notebooks/notebook/01_bronze/ingest --overwrite
-          databricks workspace import-dir /Repos/notebooks/notebook/02_silver/transform --overwrite
-          databricks workspace import-dir /Repos/notebooks/notebook/03_gold/reporting --overwrite
-
+          
+          # Import from GitHub checkout (current dir) to Databricks workspace
+          echo "📦 Deploying 01_bronze/ingest.ipynb..."
+          databricks workspace import ./01_bronze/ingest.ipynb \
+            /Repos/Notebook/notebooks/01_bronze/ingest.ipynb \
+            --language PYTHON --format JUPYTER --overwrite
+          
+          echo "📦 Deploying 02_silver/transform.ipynb..."
+          databricks workspace import ./02_silver/transform.ipynb \
+            /Repos/Notebook/notebooks/02_silver/transform.ipynb \
+            --language PYTHON --format JUPYTER --overwrite
+          
+          echo "📦 Deploying 03_gold/reporting.ipynb..."
+          databricks workspace import ./03_gold/reporting.ipynb \
+            /Repos/Notebook/notebooks/03_gold/reporting.ipynb \
+            --language PYTHON --format JUPYTER --overwrite
+          
+          echo "✅ All files deployed to main branch successfully!"
