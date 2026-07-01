@@ -9,19 +9,19 @@ resources:
       tasks:
         - task_key: bronze_ingest
           notebook_task:
-            notebook_path: 01_bronze/ingest
+            notebook_path: ../01_bronze/ingest
             source: GIT
           
         - task_key: silver_transform
           notebook_task:
-            notebook_path: 02_silver/transform
+            notebook_path: ../02_silver/transform
             source: GIT
           depends_on:
             - task_key: bronze_ingest
           
         - task_key: gold_reporting
           notebook_task:
-            notebook_path: 03_gold/reporting
+            notebook_path: ../03_gold/reporting
             source: GIT
           depends_on:
             - task_key: silver_transform
