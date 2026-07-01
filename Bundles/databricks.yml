@@ -4,7 +4,7 @@ bundle:
 resources:
   jobs:
     data_pipeline_job:
-      name: notebook_job
+      name: job job
     
       tasks:
         - task_key: bronze_ingest
