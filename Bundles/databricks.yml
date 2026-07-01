@@ -5,26 +5,27 @@ resources:
   jobs:
     data_pipeline_job:
       name: notebook_job
+      git_source:
+        git_url: https://github.com/YOUR_USERNAME/YOUR_REPO_NAME
+        git_provider: gitHub
+        git_branch: main
       tasks:
         - task_key: bronze_ingest
           notebook_task:
-            notebook_path: ../01_bronze/ingest.ipynb
-            source: WORKSPACE
-          compute_key: serverless
+            notebook_path: 01_bronze/ingest
+            source: GIT
           
         - task_key: silver_transform
           notebook_task:
-            notebook_path: ../02_silver/transform.ipynb
-            source: WORKSPACE
-          compute_key: serverless
+            notebook_path: 02_silver/transform
+            source: GIT
           depends_on:
             - task_key: bronze_ingest
           
         - task_key: gold_reporting
           notebook_task:
-            notebook_path: ../03_gold/reporting.ipynb
-            source: WORKSPACE
-          compute_key: serverless
+            notebook_path: 03_gold/reporting
+            source: GIT
           depends_on:
             - task_key: silver_transform
 
