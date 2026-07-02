@@ -1,3 +1,5 @@
+-- This file works in conjunction with databricks.yml
+
 name: Deploy DAB
 
 on:
