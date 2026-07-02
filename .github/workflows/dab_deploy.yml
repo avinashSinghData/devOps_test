@@ -1,4 +1,4 @@
--- This file works in conjunction with databricks.yml
+# This file works in conjunction with databricks.yml
 
 name: Deploy DAB
 
